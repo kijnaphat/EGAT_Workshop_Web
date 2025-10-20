@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="th" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Agent: อ่านเอกสาร OCR ด้วย Make.com</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            scroll-padding-top: 5rem; /* For sticky header */
+            background-color: #f8fafc; /* Slate-50 */
+        }
+        .flow-arrow {
+            position: relative;
+            width: 2.5rem;
+            height: 2px;
+            background-color: #cbd5e1; /* Slate-300 */
+            margin: 0 1.5rem;
+            border-radius: 1px;
+        }
+        .flow-arrow::after {
+            content: '';
+            position: absolute;
+            right: -5px;
+            top: -4px;
+            border: solid #94a3b8; /* Slate-400 */
+            border-width: 0 2px 2px 0;
+            display: inline-block;
+            padding: 4px;
+            transform: rotate(-45deg);
+        }
+        .nav-link.active {
+            color: #4f46e5; /* Indigo-600 */
+            background-color: #eef2ff; /* Indigo-50 */
+            border-radius: 9999px; /* rounded-full */
+        }
+        .tab-active {
+            border-color: #4f46e5;
+            color: #4f46e5;
+            background-color: #ffffff;
+            border-bottom-width: 3px;
+        }
+        .accordion-content, .step-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 350px;
+        }
+        .gradient-text {
+            background: linear-gradient(to right, #4f46e5, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .glassmorphism {
+             background: rgba(255, 255, 255, 0.2);
+             backdrop-filter: blur(10px);
+             -webkit-backdrop-filter: blur(10px);
+             border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <!-- Sticky Navigation Bar -->
+    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-slate-200/80">
+        <div class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <img src="image\LogoEGAT-EN.png" alt="EGAT Logo" class="h-10">
+                <img src="image\Logo_of_Srinakharinwirot_University.svg.png" alt="SWU Logo" class="h-10">
+                <h1 class="text-xl font-extrabold gradient-text">Make.com AI Automation</h1>
+            </div>
+            <div class="hidden lg:flex items-center space-x-2 text-sm font-semibold text-slate-600">
+                <a href="#what-and-why" class="nav-link px-4 py-2 transition-all duration-300 hover:bg-slate-100 hover:text-indigo-600">คุณค่าหลัก</a>
+                <a href="#how-it-works" class="nav-link px-4 py-2 transition-all duration-300 hover:bg-slate-100 hover:text-indigo-600">กลไกการทำงาน</a>
+                <a href="#automation-impact" class="nav-link px-4 py-2 transition-all duration-300 hover:bg-slate-100 hover:text-indigo-600">ผลกระทบ</a>
+                <a href="#use-cases" class="nav-link px-4 py-2 transition-all duration-300 hover:bg-slate-100 hover:text-indigo-600">กรณีศึกษา</a>
+                <a href="#advanced-features" class="nav-link px-4 py-2 transition-all duration-300 hover:bg-slate-100 hover:text-indigo-600">เครื่องมือขั้นสูง</a>
+                <a href="#ai-workshop" class="nav-link px-4 py-2 transition-all duration-300 hover:bg-slate-100 hover:text-indigo-600">เวิร์กช็อป AI</a>
+            </div>
+             <!-- Mobile Menu Button -->
+            <div class="lg:hidden">
+                <button id="mobile-menu-button" class="text-slate-600 hover:text-indigo-600 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </button>
+            </div>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden lg:hidden px-6 pt-2 pb-4 space-y-2">
+             <a href="#what-and-why" class="block nav-link px-4 py-2 text-slate-600 hover:bg-slate-100 hover:text-indigo-600 rounded-md">คุณค่าหลัก</a>
+             <a href="#how-it-works" class="block nav-link px-4 py-2 text-slate-600 hover:bg-slate-100 hover:text-indigo-600 rounded-md">กลไกการทำงาน</a>
+             <a href="#automation-impact" class="block nav-link px-4 py-2 text-slate-600 hover:bg-slate-100 hover:text-indigo-600 rounded-md">ผลกระทบ</a>
+             <a href="#use-cases" class="block nav-link px-4 py-2 text-slate-600 hover:bg-slate-100 hover:text-indigo-600 rounded-md">กรณีศึกษา</a>
+             <a href="#advanced-features" class="block nav-link px-4 py-2 text-slate-600 hover:bg-slate-100 hover:text-indigo-600 rounded-md">เครื่องมือขั้นสูง</a>
+             <a href="#ai-workshop" class="block nav-link px-4 py-2 text-slate-600 hover:bg-slate-100 hover:text-indigo-600 rounded-md">เวิร์กช็อป AI</a>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-6 py-12 md:py-20">
+
+        <!-- Section 1: Hero -->
+        <header class="text-center mb-20 md:mb-32 pt-10">
+            <h1 class="text-5xl md:text-7xl font-extrabold text-slate-900 mb-4 tracking-tight leading-tight">AI Agent สำหรับอ่านเอกสาร OCR ด้วย <span class="gradient-text">Make.com</span></h1>
+            <p class="text-xl md:text-2xl text-slate-600 font-medium mt-4">แพลตฟอร์มผสานระบบและ AI เพื่อการวิเคราะห์ข้อมูลอัจฉริยะ</p>
+            <p class="mt-6 max-w-3xl mx-auto text-lg text-slate-500">เปลี่ยนข้อมูลดิบ (รูปภาพ, เอกสาร) ให้เป็น Insight ที่พร้อมใช้งานทันที โดยเชื่อมต่อ Line, Google Sheets และ AI อย่างไร้รอยต่อ</p>
+             <div class="mt-10 flex justify-center gap-4">
+                <a href="#ai-workshop" class="bg-indigo-600 text-white font-bold py-3 px-8 rounded-full hover:bg-indigo-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                    เริ่มเวิร์กช็อป AI
+                </a>
+                <a href="#use-cases" class="bg-white text-slate-700 font-bold py-3 px-8 rounded-full hover:bg-slate-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 border border-slate-200">
+                    ดูกรณีศึกษา
+                </a>
+            </div>
+        </header>
+
+        <!-- Section 2: Core Value Pillars -->
+        <section id="what-and-why" class="mb-20 md:mb-32">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-extrabold text-slate-900">4 เสาหลักขับเคลื่อนธุรกิจด้วย AI Automation</h2>
+                <p class="mt-3 max-w-3xl mx-auto text-lg text-slate-500">Make.com มอบเครื่องมือที่ช่วยให้องค์กรของคุณผสานเทคโนโลยี AI เข้ากับการทำงานในชีวิตประจำวันได้อย่างลงตัว</p>
+            </div>
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Card 1 -->
+                <div class="bg-white p-8 rounded-2xl shadow-lg border-t-4 border-indigo-500 hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+                    <div class="bg-indigo-100 text-indigo-600 rounded-full w-12 h-12 flex items-center justify-center mb-5">
+                       <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2 text-slate-900">Scalability (ขยายขนาด)</h3>
+                    <p class="text-slate-500">รองรับปริมาณธุรกรรมที่สูงขึ้นอย่างก้าวกระโดด ทำให้ระบบอัตโนมัติเติบโตไปพร้อมกับธุรกิจของคุณ</p>
+                </div>
+                 <!-- Card 2 -->
+                <div class="bg-white p-8 rounded-2xl shadow-lg border-t-4 border-purple-500 hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+                     <div class="bg-purple-100 text-purple-600 rounded-full w-12 h-12 flex items-center justify-center mb-5">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" /></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2 text-slate-900">Data Transformation</h3>
+                    <p class="text-slate-500">เปลี่ยนข้อมูลไร้โครงสร้าง (รูปภาพ, แชท) ให้เป็น JSON ที่พร้อมใช้ทันทีด้วย AI Module</p>
+                </div>
+                 <!-- Card 3 -->
+                <div class="bg-white p-8 rounded-2xl shadow-lg border-t-4 border-sky-500 hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+                     <div class="bg-sky-100 text-sky-600 rounded-full w-12 h-12 flex items-center justify-center mb-5">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2 text-slate-900">Hyper-Connectivity</h3>
+                    <p class="text-slate-500">เชื่อมต่อ Line, Gemini AI, และ Google Sheets ให้ทำงานเป็น Scenario เดียวกันได้อย่างสมบูรณ์</p>
+                </div>
+                 <!-- Card 4 -->
+                <div class="bg-white p-8 rounded-2xl shadow-lg border-t-4 border-emerald-500 hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+                     <div class="bg-emerald-100 text-emerald-600 rounded-full w-12 h-12 flex items-center justify-center mb-5">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.653-.084-1.28-.24-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.653.084-1.28.24-1.857m10.52-2.88a1 1 0 00-1.732-1.001l-1.732 1m-4.5-5.032a1 1 0 00-1.732-1.001l-1.732 1M9 10l.158.274A1 1 0 0010.45 11h3.1a1 1 0 00.868-1.503L12 6.5" /></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2 text-slate-900">Citizen Development</h3>
+                    <p class="text-slate-500">ให้อำนาจพนักงาน (Non-coders) สามารถสร้างและบำรุงรักษา Workflow ของตนเองได้ด้วย Visual Builder</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: How It Works -->
+        <section id="how-it-works" class="mb-20 md:mb-32">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-extrabold text-slate-900">กลไกหลัก: Scenario ที่ขับเคลื่อนด้วย AI</h2>
+                <p class="mt-3 max-w-3xl mx-auto text-lg text-slate-500">Scenario คือผังการทำงานอัจฉริยะที่สร้างขึ้นเพื่อแก้ปัญหาทางธุรกิจ คลิกที่แต่ละ Module เพื่อดูคำอธิบาย</p>
+            </div>
+            <div class="bg-white p-8 md:p-12 rounded-3xl shadow-xl border border-slate-200">
+                <div class="lg:flex lg:items-center lg:space-x-12">
+                    <div class="flex-1 mb-8 lg:mb-0">
+                        <p class="text-sm font-bold text-indigo-600 mb-6 uppercase tracking-wider">ผังการทำงานอัตโนมัติ (SCENARIO FLOW)</p>
+                        <div class="flex items-center justify-center flex-wrap md:flex-nowrap">
+                            <div id="trigger" class="interactive-module cursor-pointer border-2 border-indigo-500 bg-indigo-50 text-indigo-800 font-bold py-5 px-7 rounded-full text-center transition-all transform hover:scale-105 shadow-md min-w-[130px]">1. Trigger</div>
+                            <div class="flow-arrow hidden md:block"></div>
+                            <div id="search" class="interactive-module cursor-pointer border-2 border-gray-300 bg-gray-50 text-slate-700 font-semibold py-5 px-7 rounded-full text-center my-4 md:my-0 transition-all transform hover:scale-105 shadow-md min-w-[130px]">2. Search</div>
+                            <div class="flow-arrow hidden md:block"></div>
+                            <div id="action" class="interactive-module cursor-pointer border-2 border-gray-300 bg-gray-50 text-slate-700 font-semibold py-5 px-7 rounded-full text-center transition-all transform hover:scale-105 shadow-md min-w-[130px]">3. Action</div>
+                        </div>
+                    </div>
+                    <div id="explanation-box" class="flex-1 bg-slate-50 p-8 rounded-2xl min-h-[220px] border border-slate-200">
+                        <h4 id="explanation-title" class="text-2xl font-extrabold text-slate-800 mb-3"></h4>
+                        <p id="explanation-text" class="text-slate-600 leading-relaxed text-lg"></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Section 4: Automation Impact -->
+        <section id="automation-impact" class="mb-20 md:mb-32">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-extrabold text-slate-900">ผลกระทบเชิงตัวเลข: ROI และประสิทธิภาพ</h2>
+                 <p class="mt-3 max-w-3xl mx-auto text-lg text-slate-500">แสดงให้เห็นถึงผลลัพธ์ที่วัดผลได้ ทั้งในแง่ของเวลาที่ประหยัดได้ และความเร็วในการประมวลผลธุรกรรม</p>
+            </div>
+            <div class="grid lg:grid-cols-2 gap-8 items-stretch">
+                <div class="bg-indigo-600 p-8 rounded-3xl shadow-2xl text-white flex flex-col items-center justify-center text-center bg-[url('https://www.transparenttextures.com/patterns/az-subtle.png')]">
+                     <h3 class="text-2xl font-bold mb-2 opacity-90">ธุรกรรมที่ประมวลผล Real-Time</h3>
+                     <p class="text-md opacity-80 mb-6">(Simulated Transaction Execution)</p>
+                     <div class="text-7xl md:text-8xl font-extrabold tracking-tighter" id="realTimeCount">0</div>
+                     <p class="text-2xl font-bold mt-3">สำเร็จแล้ว!</p>
+                </div>
+                <div class="grid grid-rows-2 gap-8">
+                     <div class="bg-white p-6 rounded-3xl shadow-xl border border-slate-200">
+                         <h3 class="text-xl font-bold text-slate-900 mb-2">1. การลดเวลาทำงานซ้ำซาก</h3>
+                         <p class="text-sm text-slate-500 mb-4">ประหยัดเวลารวม 87.5% ต่อเดือน</p>
+                         <div class="chart-container h-[250px] md:h-[200px]">
+                             <canvas id="timeSavedChart"></canvas>
+                         </div>
+                     </div>
+                     <div class="bg-white p-6 rounded-3xl shadow-xl border border-slate-200">
+                         <h3 class="text-xl font-bold text-slate-900 mb-2">2. อัตราความแม่นยำของข้อมูล</h3>
+                         <p class="text-sm text-slate-500 mb-4">ความแม่นยำสูงถึง 98.5% เทียบกับมนุษย์</p>
+                         <div class="chart-container h-[250px] md:h-[200px]">
+                             <canvas id="accuracyChart"></canvas>
+                         </div>
+                     </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: Use Cases -->
+        <section id="use-cases" class="mb-20 md:mb-32">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-extrabold text-slate-900">กรณีศึกษาที่สร้างผลตอบแทนสูงสุด</h2>
+                <p class="mt-3 max-w-3xl mx-auto text-lg text-slate-500">เจาะลึกตัวอย่าง Workflow ที่ได้รับการพิสูจน์แล้วว่าช่วยเร่งความเร็วและเพิ่มรายได้</p>
+            </div>
+            <div class="bg-slate-100 p-4 rounded-full flex justify-center space-x-2 max-w-lg mx-auto mb-10">
+                <button data-tab="lead-mgmt" class="use-case-tab py-3 px-6 font-bold transition-all duration-300 rounded-full text-base tab-active">AI Document Intake</button>
+                <button data-tab="internal-collab" class="use-case-tab py-3 px-6 font-bold text-slate-500 transition-all duration-300 rounded-full text-base">Internal Operations</button>
+            </div>
+            <div id="use-cases-content">
+                <!-- Case 1 Content -->
+                <div id="lead-mgmt" class="use-case-content">
+                    <div class="bg-white p-8 md:p-12 rounded-3xl shadow-2xl border border-slate-200">
+                        <h3 class="text-2xl font-bold text-slate-800 mb-6 text-center">Flow: ดึงข้อมูลที่ดินจาก Line เข้า Google Sheets</h3>
+                        <div class="flex items-center justify-center flex-wrap p-6 bg-slate-50 rounded-2xl border border-slate-200">
+                            <!-- SVG icons replace emojis for a cleaner look -->
+                            <div class="flex flex-col items-center mx-3 my-2 text-center">
+                                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center"><svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg></div>
+                                <div class="mt-2 font-medium text-xs py-1.5 px-3 bg-slate-200 text-slate-700 rounded-md">Trigger: Line Message</div>
+                            </div>
+                            <div class="flow-arrow hidden sm:block"></div>
+                            <div class="flex flex-col items-center mx-3 my-2 text-center">
+                               <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center"><svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l-1.586-1.586a2 2 0 010-2.828L14 8M3 16V8a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path></svg></div>
+                                <div class="mt-2 font-medium text-xs text-center py-1.5 px-3 bg-slate-200 text-slate-700 rounded-md">Download Image</div>
+                            </div>
+                            <div class="flow-arrow hidden sm:block"></div>
+                            <div class="flex flex-col items-center mx-3 my-2 text-center">
+                                <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center"><svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-12v4m-2-2h4m5 4v4m-2-2h4M17 3l-4.5 5.5L17 12m-5 4.5L8 12l4.5-5.5"></path></svg></div>
+                                <div class="mt-2 font-medium text-xs text-center py-1.5 px-3 bg-slate-200 text-slate-700 rounded-md">AI Analyze (Gemini)</div>
+                            </div>
+                             <div class="flow-arrow hidden sm:block"></div>
+                            <div class="flex flex-col items-center mx-3 my-2 text-center">
+                                <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center"><svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg></div>
+                                <div class="mt-2 font-medium text-xs text-center py-1.5 px-3 bg-slate-200 text-slate-700 rounded-md">Save Data (Sheets)</div>
+                            </div>
+                        </div>
+                        <div class="mt-8 text-center bg-green-50 p-6 rounded-2xl border-l-4 border-green-500">
+                            <p class="font-bold text-slate-900 mb-1">ประโยชน์สูงสุด:</p>
+                            <p class="text-slate-600">เปลี่ยนภาพถ่ายเอกสารเป็นข้อมูลตารางพร้อมวิเคราะห์ทันที ลดการทำงาน Data Entry ซ้ำซ้อน 100%</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Case 2 Content -->
+                <div id="internal-collab" class="use-case-content hidden">
+                    <div class="bg-white p-8 md:p-12 rounded-3xl shadow-2xl border border-slate-200">
+                        <h3 class="text-2xl font-bold text-slate-800 mb-6 text-center">Flow: แจ้งเตือนสถานะโครงการข้ามแพลตฟอร์ม</h3>
+                        <div class="flex items-center justify-center flex-wrap p-6 bg-slate-50 rounded-2xl border border-slate-200">
+                           <div class="flex flex-col items-center mx-3 my-2 text-center">
+                                <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center"><svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg></div>
+                                <div class="mt-2 font-medium text-xs text-center py-1.5 px-3 bg-slate-200 text-slate-700 rounded-md">Task Completed</div>
+                            </div>
+                            <div class="flow-arrow hidden sm:block"></div>
+                             <div class="flex flex-col items-center mx-3 my-2 text-center">
+                                <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center"><svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"></path></svg></div>
+                                <div class="mt-2 font-medium text-xs text-center py-1.5 px-3 bg-slate-200 text-slate-700 rounded-md">Format Report</div>
+                            </div>
+                            <div class="flow-arrow hidden sm:block"></div>
+                            <div class="flex flex-col items-center mx-3 my-2 text-center">
+                                <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center"><svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg></div>
+                                <div class="mt-2 font-medium text-xs text-center py-1.5 px-3 bg-slate-200 text-slate-700 rounded-md">Notify Team</div>
+                            </div>
+                        </div>
+                        <div class="mt-8 text-center bg-yellow-50 p-6 rounded-2xl border-l-4 border-yellow-500">
+                            <p class="font-bold text-slate-900 mb-1">ประโยชน์สูงสุด:</p>
+                            <p class="text-slate-600">ทีมรับทราบความคืบหน้าทันที ไม่ต้องสลับแอปฯ ลดการประชุมติดตามงานและเพิ่มความโปร่งใส</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Section 6: Advanced Features -->
+        <section id="advanced-features" class="mb-20 md:mb-32">
+             <div class="text-center mb-16">
+                <h2 class="text-4xl font-extrabold text-slate-900">คุณสมบัติระดับ Enterprise</h2>
+                <p class="mt-3 max-w-3xl mx-auto text-lg text-slate-500">เครื่องมือเชิงยุทธศาสตร์ที่ช่วยให้ Scenario ของคุณมีความยืดหยุ่น ชาญฉลาด และทนทานยิ่งขึ้น</p>
+            </div>
+            <div class="max-w-4xl mx-auto space-y-4" id="accordion-container">
+                <div class="accordion-item bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-slate-200">
+                    <button class="accordion-header w-full flex justify-between items-center p-6 text-left font-bold text-slate-900 text-lg">
+                        <span>Filters & Routers (การกำหนดเส้นทางและเงื่อนไข)</span>
+                        <span class="accordion-icon text-indigo-500 text-2xl transition-transform duration-500 transform rotate-0">
+                           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                        </span>
+                    </button>
+                    <div class="accordion-content">
+                        <p class="p-6 pt-0 text-slate-600">ใช้ **Routers** เพื่อแยกข้อมูลเป็นหลายเส้นทาง และใช้ **Filters** เพื่อกำหนดเงื่อนไขการทำงาน ทำให้จัดการ Logic ที่ซับซ้อน (Multi-branching Logic) ได้ใน Scenario เดียว</p>
+                    </div>
+                </div>
+                <div class="accordion-item bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-slate-200">
+                     <button class="accordion-header w-full flex justify-between items-center p-6 text-left font-bold text-slate-900 text-lg">
+                        <span>Data Transformation Tools & Functions</span>
+                        <span class="accordion-icon text-indigo-500 text-2xl transition-transform duration-500 transform rotate-0">
+                           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                        </span>
+                    </button>
+                    <div class="accordion-content">
+                        <p class="p-6 pt-0 text-slate-600">มีชุดเครื่องมือฟังก์ชันสำเร็จรูป **(Built-in Functions)** สำหรับปรับแต่งข้อมูล เช่น การรวมโครงสร้างข้อมูล (Aggregators), การคำนวณ, และการจัดการ JSON/XML เพื่อให้ทุกระบบปลายทางได้รับข้อมูลในรูปแบบที่ถูกต้อง</p>
+                    </div>
+                </div>
+                <div class="accordion-item bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-slate-200">
+                     <button class="accordion-header w-full flex justify-between items-center p-6 text-left font-bold text-slate-900 text-lg">
+                        <span>Error Handling & Failover (ความทนทานของระบบ)</span>
+                        <span class="accordion-icon text-indigo-500 text-2xl transition-transform duration-500 transform rotate-0">
+                           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                        </span>
+                    </button>
+                    <div class="accordion-content">
+                        <p class="p-6 pt-0 text-slate-600">ระบบ **Error Handling** ที่กำหนดได้เอง เช่น การตั้งค่าให้ Scenario ลองทำงานซ้ำ (Retry) หรือใช้ **Break/Commit Directives** เพื่อจัดการ Transactional Integrity ในกรณีที่การเชื่อมต่อล้มเหลว</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Section 7: AI Automation Workshop -->
+        <section id="ai-workshop" class="mb-20 md:mb-32">
+             <div class="text-center mb-16">
+                <h2 class="text-4xl font-extrabold text-slate-900">เวิร์กช็อป: Line -> Gemini -> Sheets</h2>
+                <p class="mt-3 max-w-3xl mx-auto text-lg text-slate-500">เปลี่ยนภาพถ่ายเอกสารที่ดินจาก Line ให้เป็นข้อมูลดิจิทัลโดยอัตโนมัติ ด้วยพลังของ Make.com และ Google AI Gemini</p>
+            </div>
+            
+            <div class="max-w-5xl mx-auto">
+                 <div class="p-8 bg-indigo-50 rounded-3xl shadow-lg border border-indigo-200 text-left mb-12">
+                     <h3 class="text-2xl font-bold text-indigo-800 mb-4">I. การเตรียมการและเครื่องมือ</h3>
+                     <div class="overflow-x-auto">
+                         <table class="min-w-full bg-white rounded-xl shadow-inner">
+                             <thead>
+                                 <tr class="bg-indigo-100 text-indigo-800 uppercase text-sm leading-normal">
+                                     <th class="py-3 px-6 text-left">เครื่องมือ</th>
+                                     <th class="py-3 px-6 text-left">วัตถุประสงค์</th>
+                                     <th class="py-3 px-6 text-left">แหล่งข้อมูล</th>
+                                 </tr>
+                             </thead>
+                             <tbody class="text-gray-600 text-sm font-light">
+                                 <tr class="border-b border-gray-200 hover:bg-slate-50"><td class="py-3 px-6 text-left font-medium">make.com</td><td class="py-3 px-6 text-left">สร้าง Workflow Automation</td><td class="py-3 px-6 text-left">เว็บไซต์ make.com</td></tr>
+                                 <tr class="border-b border-gray-200 hover:bg-slate-50"><td class="py-3 px-6 text-left font-medium">Line Developers</td><td class="py-3 px-6 text-left">ตั้งค่า Line OA และ Webhook</td><td class="py-3 px-6 text-left">Line Developers Console</td></tr>
+                                 <tr class="border-b border-gray-200 hover:bg-slate-50"><td class="py-3 px-6 text-left font-medium">Google AI Gemini</td><td class="py-3 px-6 text-left">วิเคราะห์รูปภาพและดึงข้อมูล</td><td class="py-3 px-6 text-left">aistudio.google.com</td></tr>
+                                 <tr class="hover:bg-slate-50"><td class="py-3 px-6 text-left font-medium">Google Sheets</td><td class="py-3 px-6 text-left">จัดเก็บข้อมูลที่วิเคราะห์ได้</td><td class="py-3 px-6 text-left">สร้างไฟล์ใหม่บน Drive</td></tr>
+                             </tbody>
+                         </table>
+                     </div>
+                 </div>
+
+                <h3 class="text-3xl font-bold text-slate-900 mb-8 border-b-4 border-indigo-200 pb-3">II. การสร้าง Scenario - 6 ขั้นตอน</h3>
+                <div class="space-y-4">
+                     <!-- Workshop Steps with new design -->
+                     <div class="workshop-step-item bg-white rounded-2xl shadow-lg border border-slate-200">
+                        <button class="step-header w-full flex justify-between items-center p-6 text-left font-extrabold text-slate-900">
+                            <span class="text-xl">1. รับข้อมูลจาก Line (Watch Event)</span>
+                            <span class="step-icon text-indigo-500 text-2xl transition-transform duration-500"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg></span>
+                        </button>
+                        <div class="step-content bg-slate-50/50 rounded-b-2xl">
+                             <div class="p-6 pt-0 text-slate-700">
+                                <p class="font-bold mb-2 text-indigo-700">การตั้งค่า Webhook และ Trigger:</p>
+                                <ul class="list-disc pl-5 mt-3 space-y-2">
+                                    <li>Module: <span class="font-mono bg-slate-200 py-0.5 px-1.5 rounded">Line</span> | Action: <span class="font-mono bg-slate-200 py-0.5 px-1.5 rounded">Watch events</span></li>
+                                    <li>**การตั้งค่า Webhook:** สร้าง Connection ด้วย **Channel Access Token** -> Copy Webhook URL -> วางใน Line Developers Console และเปิดใช้งาน</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                     <!-- Step 2 -->
+                     <div class="workshop-step-item bg-white rounded-2xl shadow-lg border border-slate-200">
+                        <button class="step-header w-full flex justify-between items-center p-6 text-left font-extrabold text-slate-900">
+                            <span class="text-xl">2. ดาวน์โหลดไฟล์แนบ (Download attachment)</span>
+                             <span class="step-icon text-indigo-500 text-2xl transition-transform duration-500"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg></span>
+                        </button>
+                        <div class="step-content bg-slate-50/50 rounded-b-2xl">
+                            <div class="p-6 pt-0 text-slate-700">
+                                <p class="font-bold mb-2 text-indigo-700">การดึงไฟล์ภาพจากข้อความ:</p>
+                                <ul class="list-disc pl-5 mt-3 space-y-2">
+                                    <li>Module: <span class="font-mono bg-slate-200 py-0.5 px-1.5 rounded">Line</span> | Action: <span class="font-mono bg-slate-200 py-0.5 px-1.5 rounded">Download message attachment</span></li>
+                                    <li>**Message ID:** เลือกตัวแปร <span class="font-mono bg-gray-200 py-0.5 px-1.5 rounded">Message ID</span> จาก **ขั้นตอนที่ 1** เพื่อระบุไฟล์ที่ต้องการดาวน์โหลด</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                     <!-- Step 3, 4, 5, 6 follow the same new structure... -->
+                     <div class="workshop-step-item bg-white rounded-2xl shadow-lg border border-slate-200">
+                        <button class="step-header w-full flex justify-between items-center p-6 text-left font-extrabold text-slate-900">
+                            <span class="text-xl">3. อัปโหลดไฟล์ขึ้น Gemini (Upload a file)</span>
+                             <span class="step-icon text-indigo-500 text-2xl transition-transform duration-500"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg></span>
+                        </button>
+                        <div class="step-content bg-slate-50/50 rounded-b-2xl">
+                             <div class="p-6 pt-0 text-slate-700">
+                                <p class="font-bold mb-2 text-indigo-700">การส่งไฟล์เข้าสู่ AI API:</p>
+                                <ul class="list-disc pl-5 mt-3 space-y-2">
+                                    <li>Module: <span class="font-mono bg-slate-200 py-0.5 px-1.5 rounded">Google AI Gemini</span> | Action: <span class="font-mono bg-slate-200 py-0.5 px-1.5 rounded">Upload a file</span></li>
+                                    <li>**Connection:** ใช้ **API Key** จาก <span class="font-bold">aistudio.google.com</span> เพื่อเชื่อมต่อ</li>
+                                    <li>**File:** ระบบจะเลือกไฟล์ที่ดาวน์โหลดมาจาก **ขั้นตอนที่ 2** โดยอัตโนมัติ</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="workshop-step-item bg-white rounded-2xl shadow-lg border border-slate-200">
+                        <button class="step-header w-full flex justify-between items-center p-6 text-left font-extrabold text-slate-900">
+                            <span class="text-xl">4. วิเคราะห์และดึงข้อมูล (Create a Completion)</span>
+                             <span class="step-icon text-indigo-500 text-2xl transition-transform duration-500"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg></span>
+                        </button>
+                        <div class="step-content bg-slate-50/50 rounded-b-2xl">
+                             <div class="p-6 pt-0 text-slate-700 space-y-4">
+                                <p class="font-bold text-indigo-700">หัวใจหลัก: การกำหนด Prompt และโครงสร้าง JSON:</p>
+                                <ul class="list-disc pl-5 space-y-2">
+                                    <li><strong>Module:</strong> <span class="font-mono bg-slate-200 py-0.5 px-1.5 rounded">Google AI Gemini</span></li>
+                                    <li><strong>Action:</strong> <span class="font-mono bg-slate-200 py-0.5 px-1.5 rounded">Create a Completion</span> (หัวใจหลักของการวิเคราะห์)</li>
+                                    <li>
+                                        <strong>การตั้งค่า:</strong>
+                                        <ul class="list-circle pl-6 mt-2 space-y-1">
+                                            <li>เลือก Connection ของ Gemini ที่สร้างไว้</li>
+                                            <li><strong>AI Model:</strong> แนะนำให้เลือกโมเดลที่ลงท้ายด้วย Flash หรือ Pro เช่น <span class="font-mono bg-gray-200 py-0.5 px-1.5 rounded">Gemini 1.5 Flash</span> เพื่อประหยัด Token</li>
+                                            <li><strong>Messages:</strong> กด Add item เพื่อกำหนด Prompt (คำสั่ง)</li>
+                                            <li><strong>Item 1 (System Prompt):</strong> กำหนดบทบาท AI</li>
+                                            <li><strong>Role:</strong> เลือก Model</li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                                <h4 class="font-extrabold mt-4 text-slate-800">Prompt 1: System Prompt (กำหนดบทบาท AI)</h4>
+                                <pre class="bg-gray-800 text-green-300 p-4 rounded-lg overflow-x-auto text-sm shadow-md"><code>You are an expert data extraction AI assistant specializing in land records. Your primary function is to accurately extract specific information from the provided image of a land document, and format it strictly into a valid JSON object. Do not include any explanatory text, greetings, or conversational filler in your response. Your output must be only the JSON object. If a specific piece of information cannot be found, use a null value for that field.
+
+The required fields are:
+1. **Land Plot Number (เลขแปลงที่ดิน):** The official identification number of the land plot.
+2. **Owner's Full Name (ชื่อ-นามสกุล):** The full name of the land owner.
+3. **Area Size (ขนาดพื้นที่):** The total area of the land plot (include units if present, e.g., Rai-Ngan-Wah or square meters).
+4. **Land Use (การใช้ประโยชน์ที่ดิน):** The designated or actual use of the land (e.g., residential, agricultural, commercial).
+
+The expected JSON schema is:
+```json
+{
+  "land_plot_number": "value or null",
+  "owner_full_name": "value or null",
+  "area_size": "value or null",
+  "land_use": "value or null"
+}
+```</code></pre>
+                                <h4 class="font-extrabold mt-4 text-slate-800">Item 2 (User Prompt): รูปภาพที่ต้องการวิเคราะห์</h4>
+                                <ul class="list-disc pl-5 mt-2 space-y-1">
+                                    <li><strong>Role:</strong> เลือก User</li>
+                                    <li><strong>Part Type:</strong> เลือก File</li>
+                                    <li><strong>File Type:</strong> เลือก File URI และเลือกตัวแปร URI ที่มาจาก ขั้นตอนที่ 3 (ไฟล์ที่อัปโหลดขึ้น Gemini)</li>
+                                </ul>
+                                <h4 class="font-extrabold mt-4 text-slate-800">Item 2.1 (User Prompt): คำสั่งและโครงสร้างข้อมูล</h4>
+                                <ul class="list-disc pl-5 mt-2 space-y-1">
+                                    <li><strong>Role:</strong> เลือก User</li>
+                                    <li><strong>Part Type:</strong> เลือก Text</li>
+                                </ul>
+                                <h4 class="font-extrabold mt-4 text-slate-800">Prompt 2: Text Prompt (คำสั่งดึงข้อมูล)</h4>
+                                <pre class="bg-gray-800 text-green-300 p-4 rounded-lg overflow-x-auto text-sm shadow-md"><code>extract these specific fields: land_plot_number, full_name, area_size, and land_use_description.
+Format the output as a single, valid JSON object with the following keys and data types:
+- `land_plot_number`: (string) The number or identifier of the land plot.
+- `full_name`: (string) The full name (name and surname) of the person associated with the record.
+- `area_size`: (string) The area size of the land plot, including the units as written (e.g., Rai-Ngan-Wah).
+- `land_use_description`: (string) The description of how the land is being used or the nature of the transaction.
+If any field cannot be found, use `null` as its value. Your response must contain ONLY the raw JSON object, without any surrounding text, explanations, or markdown formatting like `json`.
+
+ตัวอย่างผลลัพธ์:
+[
+  {
+    "แปลง": "A284",
+    "เจ้าของ": "นางประนอม",
+    "เนื้อที่": "2-0-72.9",
+    "การใช้ประโยชน์": "ทำนา"
+  },
+  {
+    "แปลง": "A283",
+    "เจ้าของ": "นางจบส",
+    "เนื้อที่": ["0-2-46.0", "0-1-59.3", "1-0-53.2"],
+    "การใช้ประโยชน์": "ที่ว่าง/ทำนา"
+  }
+]</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="workshop-step-item bg-white rounded-2xl shadow-lg border border-slate-200">
+                        <button class="step-header w-full flex justify-between items-center p-6 text-left font-extrabold text-slate-900">
+                            <span class="text-xl">5. คลีนข้อมูล JSON (Parse JSON)</span>
+                             <span class="step-icon text-indigo-500 text-2xl transition-transform duration-500"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg></span>
+                        </button>
+                        <div class="step-content bg-slate-50/50 rounded-b-2xl">
+                             <div class="p-6 pt-0 text-slate-700">
+                                <p class="font-bold mb-2 text-indigo-700">การแปลงข้อมูลดิบให้ใช้งานได้:</p>
+                                <ul class="list-disc pl-5 mt-3 space-y-2">
+                                    <li><strong>Action:</strong> <span class="font-mono bg-slate-200 py-0.5 px-1.5 rounded">Parse JSON</span></li>
+                                    <li><strong>Data Structure:</strong> สร้าง Data Structure จากตัวอย่าง JSON ใน Prompt <strong>ขั้นตอนที่ 4</strong></li>
+                                    <li><strong>JSON String (สำคัญ):</strong> ใช้ฟังก์ชัน <code class="font-mono bg-red-100 text-red-800 p-1 rounded break-all">{{replace(replace(4.result; "```json"; emptystring); "```"; emptystring)}}</code> เพื่อตัด Markdown code blocks ที่อาจติดมากับ Result ของ AI</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="workshop-step-item bg-white rounded-2xl shadow-lg border border-slate-200">
+                        <button class="step-header w-full flex justify-between items-center p-6 text-left font-extrabold text-slate-900">
+                            <span class="text-xl">6. บันทึกข้อมูลเข้า Google Sheets (Add a Row)</span>
+                             <span class="step-icon text-indigo-500 text-2xl transition-transform duration-500"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg></span>
+                        </button>
+                        <div class="step-content bg-slate-50/50 rounded-b-2xl">
+                             <div class="p-6 pt-0 text-slate-700">
+                                <p class="font-bold mb-2 text-indigo-700">การจัดเก็บผลลัพธ์ในฐานข้อมูล:</p>
+                                <ul class="list-disc pl-5 mt-3 space-y-2">
+                                    <li>Action: <span class="font-mono bg-slate-200 py-0.5 px-1.5 rounded">Add a Row</span></li>
+                                    <li>**Mapping:** เชื่อมโยงตัวแปรข้อมูลจาก **ขั้นตอนที่ 5** เข้ากับหัวคอลัมน์ของ Google Sheets ที่เตรียมไว้</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 8: CTA -->
+        <footer class="text-center bg-gradient-to-br from-indigo-700 to-purple-800 p-12 md:p-20 rounded-3xl shadow-2xl">
+            <h2 class="text-4xl font-extrabold text-white">พร้อมปฏิวัติระบบงานของคุณแล้วหรือยัง?</h2>
+            <p class="mt-4 max-w-2xl mx-auto text-indigo-200 text-lg">Make.com คือพันธมิตรทางเทคโนโลยีที่จะช่วยให้องค์กรของคุณมุ่งเน้นไปที่นวัตกรรมและการเติบโต</p>
+            <a href="https://www.make.com/" target="_blank" rel="noopener noreferrer" class="mt-10 inline-block bg-white text-indigo-700 font-extrabold text-lg py-4 px-10 rounded-full hover:bg-slate-100 transition-all duration-300 shadow-xl transform hover:scale-105 uppercase tracking-wider">
+                เริ่มทดลองใช้งานระดับ Enterprise
+            </a>
+        </footer>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- Mobile Menu Toggle ---
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            
+            // --- Real-Time Counter Logic ---
+            const realTimeCountEl = document.getElementById('realTimeCount');
+            if(realTimeCountEl) {
+                let count = 0;
+                const targetCount = 34567;
+                const duration = 3000;
+                const increment = Math.ceil(targetCount / (duration / 50));
+
+                const counterInterval = setInterval(() => {
+                    count += increment;
+                    if (count >= targetCount) {
+                        count = targetCount;
+                        clearInterval(counterInterval);
+                    }
+                    realTimeCountEl.textContent = count.toLocaleString('en-US');
+                }, 50);
+            }
+            
+            // --- Sticky Navigation Active State ---
+            const navLinks = document.querySelectorAll('.nav-link');
+            const sections = document.querySelectorAll('section');
+            function onScroll() {
+                let current = '';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop - 100;
+                    if (scrollY >= sectionTop) {
+                        current = section.getAttribute('id');
+                    }
+                });
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.href && link.href.includes(current)) {
+                        link.classList.add('active');
+                    }
+                });
+            }
+            window.addEventListener('scroll', onScroll);
+
+            // --- How It Works Section Logic ---
+            const modules = document.querySelectorAll('.interactive-module');
+            const explanationTitle = document.getElementById('explanation-title');
+            const explanationText = document.getElementById('explanation-text');
+            const explanations = {
+                trigger: { title: "1. Trigger (จุดเริ่มต้น)", text: "Module นี้กำหนดจุดเริ่มต้นของ Scenario ซึ่งในเวิร์กช็อปคือ 'เมื่อมีผู้ใช้ส่งข้อความหรือรูปภาพมาใน Line OA'" },
+                search: { title: "2. Search (ค้นหา/ดึงข้อมูล)", text: "Module นี้ทำหน้าที่ดึงไฟล์แนบ (รูปภาพ) จาก Line Message เพื่อเตรียมส่งต่อให้ AI วิเคราะห์ต่อไป" },
+                action: { title: "3. Action (การกระทำ)", text: "Module นี้สั่งการให้ Gemini 'วิเคราะห์รูปภาพ' และสั่งให้ Google Sheets 'บันทึกข้อมูล' ที่ได้" }
+            };
+
+            function updateExplanation(id) {
+                if (!explanations[id]) return;
+                explanationTitle.textContent = explanations[id].title;
+                explanationText.textContent = explanations[id].text;
+
+                modules.forEach(m => {
+                    m.classList.remove('border-indigo-500', 'bg-indigo-50', 'text-indigo-800', 'font-bold');
+                    m.classList.add('border-gray-300', 'bg-gray-50', 'text-slate-700', 'font-semibold');
+                });
+
+                const activeModule = document.getElementById(id);
+                activeModule.classList.add('border-indigo-500', 'bg-indigo-50', 'text-indigo-800', 'font-bold');
+                activeModule.classList.remove('border-gray-300', 'bg-gray-50', 'text-slate-700', 'font-semibold');
+            }
+            modules.forEach(module => {
+                module.addEventListener('click', () => updateExplanation(module.id));
+            });
+            updateExplanation('trigger');
+
+            // --- Use Cases Section Tabs ---
+            const tabs = document.querySelectorAll('.use-case-tab');
+            const contents = document.querySelectorAll('.use-case-content');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const targetId = tab.dataset.tab;
+                    tabs.forEach(t => t.classList.remove('tab-active'));
+                    tab.classList.add('tab-active');
+                    contents.forEach(content => {
+                        content.id === targetId ? content.classList.remove('hidden') : content.classList.add('hidden');
+                    });
+                });
+            });
+
+            // --- Unified Accordion Logic ---
+            function setupAccordion(containerSelector, headerSelector, contentSelector, iconSelector) {
+                 const accordionItems = document.querySelectorAll(containerSelector);
+                 accordionItems.forEach(item => {
+                     const header = item.querySelector(headerSelector);
+                     const content = item.querySelector(contentSelector);
+                     const icon = item.querySelector(iconSelector);
+
+                     header.addEventListener('click', () => {
+                        const isOpen = content.style.maxHeight;
+
+                        // Close all accordions in the same group
+                        document.querySelectorAll(containerSelector).forEach(otherItem => {
+                           otherItem.querySelector(contentSelector).style.maxHeight = null;
+                           const otherIcon = otherItem.querySelector(iconSelector);
+                           if (otherIcon) otherIcon.classList.remove('rotate-180');
+                        });
+                        
+                        // Open the clicked one if it was closed
+                        if (!isOpen) {
+                            content.style.maxHeight = content.scrollHeight + 50 + "px";
+                            if(icon) icon.classList.add('rotate-180');
+                        }
+                     });
+                 });
+            }
+            setupAccordion('.accordion-item', '.accordion-header', '.accordion-content', '.accordion-icon > svg');
+            setupAccordion('.workshop-step-item', '.step-header', '.step-content', '.step-icon > svg');
+
+
+            // --- Chart.js Initialization ---
+            Chart.defaults.font.family = "'Sarabun', sans-serif";
+            const timeCtx = document.getElementById('timeSavedChart');
+            new Chart(timeCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['งานแมนนวล', 'งานอัตโนมัติ'],
+                    datasets: [{ data: [120, 15], backgroundColor: ['#a5b4fc', '#4f46e5'], borderRadius: 6 }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+                    scales: { y: { grid: { display: false } }, x: { grid: { display: false }, title: { display: true, text: 'ชั่วโมง (Hours)' } } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            const accCtx = document.getElementById('accuracyChart');
+            new Chart(accCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['ความแม่นยำ (Automated)', 'ข้อผิดพลาด (Manual)'],
+                    datasets: [{ data: [98.5, 1.5], backgroundColor: ['#10b981', '#f97316'], hoverOffset: 8, borderWidth: 0 }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false, cutout: '70%',
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 15 } } }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
